@@ -451,7 +451,9 @@ static void dyad_initAddress(dyad_Stream *stream) {
   size = sizeof(addr);
   dyad_free(stream->address);
   if (getpeername(stream->sockfd, &addr.sa, &size) == -1) {
-    return;
+    if (getsockname(stream->sockfd, &addr.sa, &size) == -1) {
+      return;
+    }
   }
   if (addr.sas.ss_family == AF_INET6) {
     stream->address = dyad_realloc(NULL, 46);
@@ -971,6 +973,7 @@ int dyad_listenEx(
   }
   stream->state = DYAD_STATE_LISTENING;
   stream->port = port;
+  dyad_initAddress(stream);
   /* Emit listening event */
   e = dyad_createEvent(DYAD_EVENT_LISTEN);
   e.msg = "socket is listening";
@@ -1052,6 +1055,13 @@ void dyad_vwritef(dyad_Stream *stream, const char *fmt, va_list args) {
           if (str == NULL) str = "(null)";
           writeStr:
           while (*str) {
+            dyad_vectorPush(&stream->writeBuffer, *str++);
+          }
+          break;
+        case 'b':
+          str = va_arg(args, char*);
+          c = va_arg(args, int);
+          while (c--) {
             dyad_vectorPush(&stream->writeBuffer, *str++);
           }
           break;
