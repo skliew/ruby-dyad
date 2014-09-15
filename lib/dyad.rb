@@ -50,6 +50,8 @@ module Dyad
         return Stream.new(field)
       elsif name == :data
         return field.read_string(self[:length])
+      elsif name == :msg
+        return field.read_string
       end
       field
     end
