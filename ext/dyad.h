@@ -1,5 +1,5 @@
 /** 
- * Copyright (c) 2014 rxi
+ * Copyright (c) 2015 rxi
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the MIT license. See LICENSE for details.
@@ -9,6 +9,21 @@
 #define DYAD_H
 
 #include <stdarg.h>
+
+#ifdef _WIN32
+  #include <windows.h> /* For SOCKET */
+#endif
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if _WIN32
+typedef SOCKET dyad_Socket;
+#else
+typedef int dyad_Socket;
+#endif
 
 struct dyad_Stream;
 typedef struct dyad_Stream dyad_Stream;
@@ -22,7 +37,6 @@ typedef struct {
   char *data;
   int size;
 } dyad_Event;
-
 
 typedef void (*dyad_Callback)(dyad_Event*);
 typedef void (*dyad_PanicCallback)(const char*);
@@ -73,7 +87,7 @@ void dyad_removeListener(dyad_Stream *stream, int event,
 void dyad_removeAllListeners(dyad_Stream *stream, int event);
 void dyad_end(dyad_Stream *stream);
 void dyad_close(dyad_Stream *stream);
-void dyad_write(dyad_Stream *stream, void *data, int size);
+void dyad_write(dyad_Stream *stream, const void *data, int size);
 void dyad_vwritef(dyad_Stream *stream, const char *fmt, va_list args);
 void dyad_writef(dyad_Stream *stream, const char *fmt, ...);
 void dyad_setTimeout(dyad_Stream *stream, double seconds);
@@ -83,6 +97,10 @@ const char *dyad_getAddress(dyad_Stream *stream);
 int  dyad_getPort(dyad_Stream *stream);
 int  dyad_getBytesSent(dyad_Stream *stream);
 int  dyad_getBytesReceived(dyad_Stream *stream);
-int  dyad_getSocket(dyad_Stream *stream);
+dyad_Socket dyad_getSocket(dyad_Stream *stream);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif
